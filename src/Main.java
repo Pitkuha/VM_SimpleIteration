@@ -1,10 +1,8 @@
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.Scanner;
+import java.util.*;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.max;
+import static java.lang.Math.*;
 
 public class Main {
     public static final String ANSI_RESET = "\u001B[0m";
@@ -18,30 +16,19 @@ public class Main {
     public static final String ANSI_WHITE = "\u001B[37m";
     public static final String otdelitel = ANSI_RED + "===================================================================" + ANSI_RESET;
 
-    static void prettyPrint1(double[] arr) {
-        System.out.println(otdelitel);
-        for (int i = 0; i < arr.length; i++) {
-            System.out.print(ANSI_GREEN + arr[i] + " " + ANSI_RESET);
-        }
+    static void prettyPrint(double[] arr) {
+        for (double ar : arr) System.out.printf(Locale.US, "%.6f\t\t", ar);
         System.out.println();
-        System.out.println(otdelitel);
     }
-    static void prettyPrint2(double[][] arr){
-        System.out.println(otdelitel);
-        for (int i = 0; i < arr.length; i++) {
-            for (int j = 0; j < arr[0].length; j++) {
-                System.out.print(ANSI_GREEN + arr[i][j] + " " + ANSI_RESET);
-            }
+    static void prettyPrint(double[][] arr){
+        for (double[] ar : arr) {
+            for (double v : ar) System.out.printf(Locale.US, "%.6f\t\t", v);
             System.out.println();
         }
-        System.out.println(otdelitel);
     }
 
     public static void main(String[] args) {
-
-
         Scanner scanner = new Scanner(System.in);
-
         System.out.println(otdelitel);
         System.out.println("Program started");
         String variant;
@@ -73,10 +60,20 @@ public class Main {
                 }
 
                 System.out.print("Введите точность:");
-                double t = Double.parseDouble(scanner.nextLine());
+                double acc = Double.parseDouble(scanner.nextLine());
 
-                prettyPrint2(mas);
-                prettyPrint1(freemas);
+                if ((mas = diagonal_prevalence(mas, n)) != null) {
+                    System.out.println(otdelitel);
+                    System.out.println(ANSI_BLUE + "Преобразованная матрица" + ANSI_RESET);
+                    prettyPrint(mas);
+                    System.out.println();
+                    double[] x = simple_iter(mas, freemas, n, acc);
+                    System.out.print("Вектор неизвестных: ");
+                    prettyPrint(x);
+                } else {
+                    System.out.println(ANSI_RED + "Невозможно осуществеить диагональное преобладание" + ANSI_RESET);
+                }
+
             }
             else if (variant.equals("f")) {
                 try {
@@ -94,10 +91,17 @@ public class Main {
                         }
                         freemas[i] = numarr[n];
                     }
-                    double t = Double.parseDouble(reader.readLine());
+                    double acc = Double.parseDouble(reader.readLine());
 
-                    prettyPrint2(mas);
-                    prettyPrint1(freemas);
+                    if ((mas = diagonal_prevalence(mas, n)) != null) {
+                        prettyPrint(mas);
+                        System.out.println();
+                        double[] x = simple_iter(mas, freemas, n, acc);
+                        System.out.print("Вектор неизвестных: ");
+                        prettyPrint(x);
+                    } else {
+                        System.out.println(ANSI_RED + "Невозможно осуществеить диагональное преобладание" + ANSI_RESET);
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                     System.out.println(ANSI_RED + "Невозможно извлечь данные из файла" + ANSI_RESET);
@@ -108,5 +112,90 @@ public class Main {
                 System.out.println("Введены неправильные данные");
             }
         }
+    }
+    static double[][] diagonal_prevalence(double[][] a, int n) {
+        int[] unique_max_columns = new int[n];
+
+        //search max elements
+        for (int i = 0; i < n; i++) {
+            int max_j = 0;
+            double row_sum = a[i][0];
+            for (int j = 1; j < n; j++) {
+                if (a[i][j] > a[i][max_j]) max_j = j;
+                row_sum += Math.abs(a[i][j]);
+            }
+            if (a[i][max_j] * 2 < row_sum) return null;
+            unique_max_columns[i] = max_j;
+        }
+
+        //check for duplicates
+        Set<Integer> s = new HashSet<>();
+        for (int i : unique_max_columns) {
+            if (s.contains(i)) return null;
+            s.add(i);
+        }
+
+        //replacing
+        int i = 0;
+        double[][] z = new double[n][n];
+        for (int col_num : unique_max_columns) {
+            for (int j = 0; j < n; j++) {
+                z[j][i] = a[j][col_num];
+            }
+            i++;
+        }
+        /**
+         * @param z преобразованный масив. Привели к нормальному виду
+         */
+        return z;
+    }
+
+    /**
+     *
+     * @param a матрица А
+     * @param b свободные коэффиценты
+     * @param n размер матрицы
+     * @param acc точность
+     * @return значение n "иксов"
+     */
+    static double[] simple_iter(double[][] a, double[] b, int n, double acc) {
+        //массив неизвестных
+        double[] x = new double[n];
+        //преобразованный массив A, как в методе
+        double[][] c = new double[n][n];
+        //преобразованные коэффиценты
+        double[] d = new double[n];
+
+        //initialization
+        for (int i = 0; i < n; i++) {
+            d[i] = b[i]/a[i][i];
+            x[i] = d[i];
+
+            for (int j = 0; j < n; j++) {
+                c[i][j] = -a[i][j]/a[i][i];
+                c[i][i] = 0;
+            }
+        }
+
+        double last_acc = acc+1;
+        int iter_cout = 1;
+        //если x - это текущая итерация, x1 -следующая итерация
+        double[] x1 = new double[n];
+
+        System.out.print("0. "); prettyPrint(x);
+        for (; last_acc > acc; iter_cout++) {
+            last_acc = -1;
+            for (int i = 0; i < n; i++) {
+                x1[i] = d[i];
+                for (int j = 0; j < n; j++) {
+                    x1[i] += c[i][j]*x[j];
+                }
+                last_acc = Math.max(last_acc, Math.abs(x1[i] - x[i]));
+            }
+            System.out.printf("%d. ", iter_cout); prettyPrint(x1);
+            System.out.printf("Погрешность: %.6f\n\n",last_acc);
+            x = x1.clone();
+        }
+        return x;
     }
 }
