@@ -4,6 +4,9 @@ import java.util.*;
 
 import static java.lang.Math.*;
 
+/**
+ * @author Pitkuha
+ */
 public class Main {
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_BLACK = "\u001B[30m";
@@ -110,7 +113,7 @@ public class Main {
                 }
             }
             else {
-                System.out.println("Введены неправильные данные");
+                System.out.println(ANSI_RED + "Введены неправильные данные" + ANSI_RESET);
             }
         }
     }
@@ -145,8 +148,8 @@ public class Main {
             }
             i++;
         }
-        /**
-         * @param z преобразованный масив. Привели к нормальному виду
+        /*
+         * z преобразованный массив. Привели к нормальному виду
          */
         return z;
     }
@@ -182,7 +185,7 @@ public class Main {
         int iter_cout = 1;
         //если x - это текущая итерация, x1 -следующая итерация
         double[] x1 = new double[n];
-        System.out.println(ANSI_BLUE + "Итерации" + ANSI_RESET);
+        System.out.println(ANSI_BLUE + "Iteration" + ANSI_RESET);
         System.out.print("0. "); prettyPrint(x);
         for (; last_acc > acc; iter_cout++) {
             last_acc = -1;
