@@ -68,6 +68,7 @@ public class Main {
                     prettyPrint(mas);
                     System.out.println();
                     double[] x = simple_iter(mas, freemas, n, acc);
+                    System.out.println(ANSI_BLUE + "Вектор неизвестных" + ANSI_RESET);
                     System.out.print("Вектор неизвестных: ");
                     prettyPrint(x);
                 } else {
@@ -77,7 +78,6 @@ public class Main {
             }
             else if (variant.equals("f")) {
                 try {
-                    //BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("iter.txt"), Charset.forName("UTF-8")));
                     BufferedReader reader = new BufferedReader(new FileReader("./src/iter.txt"));
                     int n = Integer.parseInt(reader.readLine());
                     double[][] mas = new double[n][n];
@@ -97,6 +97,7 @@ public class Main {
                         prettyPrint(mas);
                         System.out.println();
                         double[] x = simple_iter(mas, freemas, n, acc);
+                        System.out.println(ANSI_BLUE + "Вектор неизвестных" + ANSI_RESET);
                         System.out.print("Вектор неизвестных: ");
                         prettyPrint(x);
                     } else {
@@ -181,7 +182,7 @@ public class Main {
         int iter_cout = 1;
         //если x - это текущая итерация, x1 -следующая итерация
         double[] x1 = new double[n];
-
+        System.out.println(ANSI_BLUE + "Итерации" + ANSI_RESET);
         System.out.print("0. "); prettyPrint(x);
         for (; last_acc > acc; iter_cout++) {
             last_acc = -1;
